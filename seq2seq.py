@@ -25,7 +25,7 @@ for i in input_sequences:
 for i in input_sequences:
 	for j in range(longest-len(i)):
 		i.append(PAD)
-
+print(longest)
 #for i in input_sequences:
 #	print i
 encoder_input_numpy=np.array(input_sequences)
@@ -36,7 +36,7 @@ for i in decoder_targets:
 decoder_targets_numpy=np.array(decoder_targets)
 decoder_inputs=decoder_targets
 for i in range(len(decoder_inputs)):
-	decoder_inputs[i]=decoder_inputs[i][9:]+decoder_inputs[i][:9]
+	decoder_inputs[i]=decoder_inputs[i][longest:]+decoder_inputs[i][:longest]
 
 #for i in decoder_inputs:
 #	print i
@@ -51,14 +51,14 @@ embeddings=tf.Variable(tf.random_uniform([vocab_size,input_embedding_size],-1.0,
 
 input_sequences=np.array(input_sequences)
 print('Input Sequence : ',encoder_input_numpy.shape)
-print(encoder_input_numpy)
+#print(encoder_input_numpy)
 #decoder_targets=np.array(decoder_targets)
 print('Decoder Targets : ',decoder_targets_numpy.shape)
-print(decoder_targets_numpy)
+#print(decoder_targets_numpy)
 decoder_inputs_numpy=np.array(decoder_inputs)
 #print(decoder_inputs)
 print('Decoder Inputs : ',decoder_inputs_numpy.shape)
-print(decoder_inputs_numpy)
+#print(decoder_inputs_numpy)
 
 #encoder_input_numpy
 #decoder_targets_numpy
@@ -94,13 +94,26 @@ hm_epochs=1000
 
 with tf.Session() as sess:
 	sess.run(tf.global_variables_initializer())
+	flag=0
 	epoch_list=[]
 	cost_list=[]
+	ymaxx=-1
 	for i in range(hm_epochs):
 		a,b=sess.run([loss,train_op],feed_dict={encoder_inputs:encoder_input_numpy,decoder_inputs:decoder_inputs_numpy,decoder_targets:decoder_targets_numpy})
+		if flag == 0 :
+			flag=1
+			ymaxx=a
 		print('Epoch : ',i,' Loss : ',a)
 		cost_list.append(a)
 		epoch_list.append(i)
+		plt.plot(epoch_list,cost_list)
+		plt.axis([0,hm_epochs,0,ymaxx])
+		plt.title('Cost Graph'+str(i))
+		plt.xlabel('Epochs')
+		plt.ylabel('Cost values')
+		plt.savefig('costimages/'+str(i))
+		plt.close()
+
 	print('Original : ',encoder_input_numpy)
 	predicted_values=sess.run(decoder_prediction,feed_dict={encoder_inputs:encoder_input_numpy,decoder_inputs:decoder_inputs_numpy,decoder_targets:decoder_targets_numpy})
 	print('Predicted : ',predicted_values)
